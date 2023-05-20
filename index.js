@@ -63,9 +63,47 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/myToys/:email', async (req, res) => {
+      console.log(req.params.email);
+      const result = await addToyCollection
+        .find({ sellerEmail: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+
+    app.put('/updateToy/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedToy = req.body;
+      const toy = {
+        $set: {
+          price: updatedToy.price,
+          description: updatedToy.description,
+          quantity: updatedToy.quantity,
+        },
+      };
+      const result = await addToyCollection.updateOne(query, toy, options);
+      res.send(result);
+    });
+
+    app.get('/updateToy/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addToyCollection.findOne(query);
+      res.send(result);
+    });
+
     app.get('/totalToys', async (req, res) => {
       const result = await addToyCollection.estimatedDocumentCount();
       res.send({ totalToys: result });
+    });
+
+    app.delete('/myToys/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addToyCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
