@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -8,8 +9,6 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
-
-console.log(process.env.DB_PASS);
 
 // Mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g4e8qzr.mongodb.net/?retryWrites=true&w=majority`;
@@ -37,7 +36,16 @@ async function run() {
     });
 
     app.get('/addToys', async (req, res) => {
-      const addToys = await addToyCollection.find({}).toArray();
+      // pagination
+      const page = parseInt(req.query.page) || 0;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = page * limit;
+
+      const addToys = await addToyCollection
+        .find()
+        .skip(skip)
+        .limit(limit)
+        .toArray();
       res.send(addToys);
     });
 
@@ -46,6 +54,18 @@ async function run() {
       console.log(addToyData);
       const addToy = await addToyCollection.insertOne(addToyData);
       res.send(addToy);
+    });
+
+    app.get('/addToys/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addToyCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get('/totalToys', async (req, res) => {
+      const result = await addToyCollection.estimatedDocumentCount();
+      res.send({ totalToys: result });
     });
 
     // Send a ping to confirm a successful connection
@@ -58,6 +78,7 @@ async function run() {
     // await client.close();
   }
 }
+
 run().catch(console.dir);
 
 // Define a route
