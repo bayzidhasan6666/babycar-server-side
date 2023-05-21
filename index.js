@@ -70,7 +70,12 @@ async function run() {
         .toArray();
       res.send(result);
     });
-
+    app.get('/updateToy/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addToyCollection.findOne(query);
+      res.send(result);
+    });
     app.put('/updateToy/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -84,13 +89,6 @@ async function run() {
         },
       };
       const result = await addToyCollection.updateOne(query, toy, options);
-      res.send(result);
-    });
-
-    app.get('/updateToy/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await addToyCollection.findOne(query);
       res.send(result);
     });
 
